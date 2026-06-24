@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>编译原理 · 复习系统</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ---- Landing Page Specific ---- */
+    .landing {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+      text-align: center;
+      position: relative;
+    }
+
+    .landing-hero {
+      margin-bottom: 5rem;
+    }
+
+    .landing-title {
+      font-size: clamp(4rem, 10vw, 8rem);
+      font-weight: var(--weight-thin);
+      color: var(--text-heading);
+      letter-spacing: 0.2em;
+      line-height: 1.05;
+      margin-bottom: 1.5rem;
+    }
+
+    .landing-subtitle {
+      font-size: var(--text-sm);
+      font-weight: var(--weight-thin);
+      color: var(--text-secondary);
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+    }
+
+    .landing-line {
+      width: 80px;
+      height: var(--line-thick);
+      background: var(--accent-line);
+      margin: 3rem auto 0;
+    }
+
+    /* ---- Entry Cards ---- */
+    .landing-cards {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 700px;
+    }
+
+    .landing-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 280px;
+      height: 200px;
+      background: var(--bg-primary);
+      border: var(--line-thin) solid var(--border-light);
+      text-decoration: none;
+      color: var(--text-heading);
+      transition: all var(--transition-base);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .landing-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: var(--line-thick);
+      background: var(--accent-line);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform var(--transition-base);
+    }
+
+    .landing-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .landing-card:hover {
+      border-color: var(--text-primary);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    [data-theme="dark"] .landing-card:hover {
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .landing-card-title {
+      font-size: var(--text-xl);
+      font-weight: var(--weight-thin);
+      letter-spacing: 0.1em;
+      margin-bottom: 0.75rem;
+    }
+
+    .landing-card-desc {
+      font-size: var(--text-xs);
+      font-weight: var(--weight-thin);
+      color: var(--text-secondary);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    /* ---- Footer ---- */
+    .landing-footer {
+      position: absolute;
+      bottom: 2rem;
+      font-size: var(--text-xs);
+      color: var(--text-secondary);
+      font-weight: var(--weight-thin);
+      letter-spacing: 0.1em;
+    }
+
+    /* ---- Keyboard hint ---- */
+    .landing-hint {
+      margin-top: 4rem;
+      font-size: var(--text-xs);
+      color: var(--text-secondary);
+      font-weight: var(--weight-thin);
+      letter-spacing: 0.05em;
+      display: flex;
+      gap: 2rem;
+    }
+
+    .landing-hint span {
+      opacity: 0.5;
+    }
+
+    /* ---- Theme toggle on landing ---- */
+    .landing-theme {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      z-index: 50;
+    }
+
+    /* ---- Responsive ---- */
+    @media (max-width: 640px) {
+      .landing-cards {
+        flex-direction: column;
+        align-items: center;
+      }
+      .landing-card {
+        width: 100%;
+        max-width: 300px;
+      }
+      .landing-hint {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Grain overlay -->
+  <div class="grain-overlay" aria-hidden="true"></div>
+
+  <!-- Theme toggle (top right) -->
+  <div class="landing-theme">
+    <div class="theme-wrapper" style="position:relative;">
+      <button class="theme-btn" id="themeToggle" title="切换主题 (D)" aria-label="切换主题">THEME</button>
+      <div class="theme-dropdown" id="themeDropdown">
+        <button class="theme-option" data-theme="light"><span class="theme-dot" data-theme="light"></span>Light</button>
+        <button class="theme-option active" data-theme="dark"><span class="theme-dot" data-theme="dark"></span>Dark</button>
+        <button class="theme-option" data-theme="warm"><span class="theme-dot" data-theme="warm"></span>Warm</button>
+        <button class="theme-option" data-theme="cool"><span class="theme-dot" data-theme="cool"></span>Cool</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Landing page -->
+  <main class="landing">
+
+    <div class="landing-hero">
+      <h1 class="landing-title">编译原理</h1>
+      <p class="landing-subtitle">复 习 系 统</p>
+      <div class="landing-line"></div>
+    </div>
+
+    <div class="landing-cards">
+      <a class="landing-card" href="study.html">
+        <div class="landing-card-title">知识库</div>
+        <div class="landing-card-desc">17 章 · 高密度整理</div>
+      </a>
+      <a class="landing-card" href="exam.html">
+        <div class="landing-card-title">题库</div>
+        <div class="landing-card-desc">15 道 · 期末大题</div>
+      </a>
+    </div>
+
+    <div class="landing-hint">
+      <span>D 切换主题</span>
+    </div>
+
+    <div class="landing-footer">
+      Compiler Principles Review System
+    </div>
+
+  </main>
+
+  <script>
+    // ---- Theme (landing page minimal) ----
+    const STORAGE_KEY = 'compiler-review-theme';
+    const THEMES = ['light', 'dark', 'warm', 'cool'];
+
+    function initTheme() {
+      const saved = localStorage.getItem(STORAGE_KEY) || 'dark';
+      applyTheme(saved);
+
+      const btn = document.getElementById('themeToggle');
+      const dropdown = document.getElementById('themeDropdown');
+
+      if (btn && dropdown) {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          dropdown.classList.toggle('open');
+        });
+        dropdown.querySelectorAll('.theme-option').forEach((opt) => {
+          opt.addEventListener('click', () => {
+            applyTheme(opt.dataset.theme);
+            localStorage.setItem(STORAGE_KEY, opt.dataset.theme);
+            dropdown.classList.remove('open');
+          });
+        });
+        document.addEventListener('click', () => {
+          dropdown.classList.remove('open');
+        });
+      }
+    }
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      document.querySelectorAll('.theme-option').forEach((opt) => {
+        opt.classList.toggle('active', opt.dataset.theme === theme);
+      });
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      const idx = THEMES.indexOf(current);
+      const next = THEMES[(idx + 1) % THEMES.length];
+      applyTheme(next);
+      localStorage.setItem(STORAGE_KEY, next);
+    }
+
+    // Keyboard: D to toggle theme
+    document.addEventListener('keydown', (e) => {
+      if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+      if (e.key === 'd' || e.key === 'D') {
+        e.preventDefault();
+        toggleTheme();
+      }
+    });
+
+    initTheme();
+  </script>
+</body>
+</html>

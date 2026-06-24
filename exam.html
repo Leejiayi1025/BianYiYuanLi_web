@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>编译原理 · 题库</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .exam-mode-toggle{display:flex;gap:0;border:var(--line-thin) solid var(--border-light)}
+    .exam-mode-toggle .mode-btn{background:none;border:none;padding:.5rem 1.2rem;font-family:var(--font-sans);font-size:var(--text-xs);font-weight:var(--weight-thin);letter-spacing:.1em;text-transform:uppercase;color:var(--text-secondary);cursor:pointer;transition:all var(--transition-fast);border-right:var(--line-thin) solid var(--border-light)}
+    .exam-mode-toggle .mode-btn:last-child{border-right:none}
+    .exam-mode-toggle .mode-btn.active{background:var(--text-heading);color:var(--text-on-dark)}
+    .exam-mode-toggle .mode-btn:hover:not(.active){background:rgba(0,0,0,.04)}
+    .exam-toolbar-left{display:flex;align-items:center;gap:.75rem}
+    .exam-toolbar-right{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
+    .exam-hero{text-align:center;padding:clamp(3rem,8vh,6rem) 0 clamp(2rem,5vh,4rem);margin-bottom:2rem;border-bottom:var(--line-thin) solid var(--border-light)}
+    .exam-hero-title{font-size:clamp(2rem,5vw,3.5rem);font-weight:var(--weight-thin);color:var(--text-heading);letter-spacing:.15em;line-height:1.2}
+    .exam-hero-desc{font-size:var(--text-sm);font-weight:var(--weight-thin);color:var(--text-secondary);letter-spacing:.2em;margin-top:.75rem;margin-bottom:0}
+    .exam-hero-line{width:40px;height:var(--line-thick);background:var(--accent-line);margin:1.5rem auto 0}
+    .question-card{background:var(--bg-primary);border:var(--line-thin) solid var(--border-light);padding:2rem;margin-bottom:2rem}
+    .question-header{margin-bottom:1.5rem}
+    .question-title{font-size:var(--text-xl);font-weight:var(--weight-thin);color:var(--text-heading);line-height:var(--line-tight)}
+    .question-tags{display:flex;gap:.5rem;margin-top:.75rem;flex-wrap:wrap}
+    .question-tag{font-size:var(--text-xs);color:var(--text-secondary);background:var(--bg-callout);padding:.2rem .6rem;border-radius:2px;font-weight:var(--weight-body)}
+    .question-body{margin-bottom:1.5rem}
+    .question-body p{margin-bottom:.75rem;max-width:none}
+    .question-body pre{margin:1rem 0}
+    .question-body table{margin:1rem 0}
+    .toggle-answer-btn{background:none;border:var(--line-thin) solid var(--border-light);color:var(--text-secondary);padding:.45rem 1.2rem;font-family:var(--font-sans);font-size:var(--text-xs);font-weight:var(--weight-thin);letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all var(--transition-fast)}
+    .toggle-answer-btn:hover{border-color:var(--text-primary);color:var(--text-primary)}
+    .answer-section{display:none;margin-top:1.5rem;padding-top:1.5rem;border-top:var(--line-thin) solid var(--border-light)}
+    .answer-section.open{display:block}
+    .answer-block{margin-bottom:2rem}
+    .answer-block-title{font-size:var(--text-xs);font-weight:var(--weight-black);letter-spacing:.15em;text-transform:uppercase;color:var(--text-heading);margin-bottom:.75rem}
+    .knowledge-block{position:relative;padding:1.25rem 1.5rem;background:var(--bg-callout);border-left:var(--line-thick) solid var(--accent-line);margin-bottom:2rem}
+    .knowledge-block p,.knowledge-block ul,.knowledge-block ol{max-width:none}
+    .analysis-block{margin-bottom:2rem}
+    .analysis-block p{max-width:none}
+    .steps-block{margin-bottom:2rem}
+    .steps-block p,.steps-block ul,.steps-block ol{max-width:none}
+    .steps-block table{margin:1rem 0}
+    .exam-diagram{text-align:center;margin:2rem 0;overflow-x:auto}
+    .exam-diagram svg{max-width:100%;height:auto}
+    .nav-counter{font-size:var(--text-xs);color:var(--text-secondary);font-weight:var(--weight-thin);letter-spacing:.1em;font-variant-numeric:tabular-nums}
+    .nav-buttons{display:flex;gap:.5rem;align-items:center}
+    .nav-btn{background:none;border:var(--line-thin) solid var(--border-light);color:var(--text-secondary);padding:.4rem 1rem;font-family:var(--font-sans);font-size:var(--text-xs);font-weight:var(--weight-thin);cursor:pointer;transition:all var(--transition-fast)}
+    .nav-btn:hover{border-color:var(--text-primary);color:var(--text-primary)}
+    .nav-btn:disabled{opacity:.3;cursor:default}
+    .single-nav{display:flex;justify-content:space-between;align-items:center;padding:1.5rem 0;border-top:var(--line-thin) solid var(--border-light);margin-top:1rem}
+    .hidden{display:none!important}
+    .exam-sidebar-progress{padding:1rem 1.5rem 1.5rem;border-top:var(--line-thin) solid var(--dark-gray)}
+    .exam-progress-bar{height:2px;background:var(--dark-gray);overflow:hidden}
+    .exam-progress-fill{height:100%;background:var(--text-sidebar-active);transition:width var(--transition-slow);width:0%}
+    .exam-progress-text{font-size:var(--text-xs);color:var(--mid-gray);margin-top:.4rem;font-variant-numeric:tabular-nums;display:flex;justify-content:space-between}
+    @media(max-width:768px){.question-card{padding:1.25rem}.exam-mode-toggle{flex-wrap:wrap}.exam-mode-toggle .mode-btn{flex:1;text-align:center}.exam-toolbar-right{gap:.3rem}}
+    #exportQuestionsBtn,#exportAllBtn{background:var(--text-heading);color:var(--bg-primary);border:none;font-weight:var(--weight-black);letter-spacing:.08em;padding:.45rem 1rem;height:36px}
+    #exportQuestionsBtn:hover,#exportAllBtn:hover{opacity:.85}
+  </style>
+</head>
+<body>
+
+  <!-- Grain overlay -->
+  <div class="grain-overlay" aria-hidden="true"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar open" id="sidebar">
+    <div class="sidebar-header">
+      <h1 class="sidebar-title">编译原理</h1>
+      <p class="sidebar-subtitle">题 · 库</p>
+    </div>
+    <div class="sidebar-search">
+      <input type="text" id="searchInput" placeholder="搜索… (Ctrl+K)" autocomplete="off" aria-label="搜索题目">
+      <span class="search-count" id="searchCount"></span>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav" aria-label="题目导航">
+      <a class="sidebar-item sidebar-item-exam" href="index.html">
+        <span class="sidebar-check"></span>
+        <span class="sidebar-num"></span>
+        <span class="sidebar-label">返回首页</span>
+      </a>
+      <a class="sidebar-item sidebar-item-exam" href="study.html">
+        <span class="sidebar-check"></span>
+        <span class="sidebar-num"></span>
+        <span class="sidebar-label">知识库</span>
+      </a>
+      <div class="sidebar-divider"></div>
+    </nav>
+    <div class="exam-sidebar-progress">
+      <div class="exam-progress-bar"><div class="exam-progress-fill" id="examProgressFill"></div></div>
+      <div class="exam-progress-text">
+        <span id="examProgressLabel">0 / 15 题</span>
+        <span id="examProgressPct">0%</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Sidebar overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+  <!-- Main -->
+  <main class="main">
+    <!-- Toolbar -->
+    <header class="toolbar" id="toolbar">
+      <div class="exam-toolbar-left">
+        <button class="toolbar-btn toc-toggle" id="tocToggle" title="目录" aria-label="切换侧边栏目录">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="3" y1="5" x2="17" y2="5"/><line x1="3" y1="10" x2="17" y2="10"/><line x1="3" y1="15" x2="17" y2="15"/></svg>
+        </button>
+        <nav class="breadcrumb" id="breadcrumb" aria-label="面包屑导航">
+          <a href="index.html" class="breadcrumb-home">首页</a>
+          <span class="breadcrumb-sep">/</span>
+          <span class="breadcrumb-current">题库</span>
+        </nav>
+      </div>
+      <div class="toolbar-spacer"></div>
+      <div class="exam-toolbar-right">
+        <div class="exam-mode-toggle">
+          <button class="mode-btn active" data-mode="single" id="modeSingle">逐题</button>
+          <button class="mode-btn" data-mode="all" id="modeAll">全部展开</button>
+        </div>
+        <button class="toolbar-btn" id="exportQuestionsBtn" title="导出题目" onclick="exportQuestionsOnly()">导出题目</button>
+        <button class="toolbar-btn" id="exportAllBtn" title="导出题目和解析" onclick="exportQuestionsAndAnswers()">导出全部</button>
+        <button class="toolbar-btn" id="fontDecrease" title="减小字号" aria-label="减小字号">A-</button>
+        <button class="toolbar-btn" id="fontIncrease" title="增大字号" aria-label="增大字号">A+</button>
+        <button class="toolbar-btn" id="scrollTop" title="回到顶部 (T)" aria-label="回到页面顶部">顶部</button>
+        <div class="theme-wrapper" style="position:relative;">
+          <button class="theme-btn" id="themeToggle" title="切换主题 (D)" aria-label="切换主题">切换主题</button>
+          <div class="theme-dropdown" id="themeDropdown">
+            <button class="theme-option" data-theme="light"><span class="theme-dot" data-theme="light"></span>Light</button>
+            <button class="theme-option active" data-theme="dark"><span class="theme-dot" data-theme="dark"></span>Dark</button>
+            <button class="theme-option" data-theme="warm"><span class="theme-dot" data-theme="warm"></span>Warm</button>
+            <button class="theme-option" data-theme="cool"><span class="theme-dot" data-theme="cool"></span>Cool</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <article class="content" id="content">
+      <div class="exam-hero">
+        <h1 class="exam-hero-title">编译原理</h1>
+        <p class="exam-hero-desc">题 - 库 - 练 - 习</p>
+        <div class="exam-hero-line"></div>
+      </div>
+      <div id="questionsContainer" aria-label="题目列表"></div>
+    </article>
+  </main>
+
+  <!-- Shortcuts hint -->
+  <div class="shortcuts-hint" id="shortcutsHint" aria-label="快捷键提示">
+    <span>Ctrl+K 搜索</span>
+    <span>D 主题</span>
+    <span>Enter 解析</span>
+    <span>左右 翻题</span>
+  </div>
+
+  <!-- Scripts -->
+  <script src="diagrams.js"></script>
+  <script src="exam-data.js"></script>
+  <script src="export.js"></script>
+  <script>
+  (function() {
+    "use strict";
+    var currentMode = "single";
+    var currentIndex = 0;
+    var revealedSet = {};
+    var readSet = {};
+    var currentFontSize = parseInt(localStorage.getItem("compiler-review-font-size")) || 16;
+    var STORAGE = { THEME: "compiler-review-theme", FONT: "compiler-review-font-size", PROGRESS: "compiler-review-exam-progress", READ: "compiler-review-exam-read" };
+    var sidebarItems = [
+      {id:1,label:"文法四元组定义"},{id:2,label:"正规式与语言"},{id:3,label:"NFA 转 DFA"},
+      {id:4,label:"DFA 状态转移"},{id:5,label:"最左推导与语法树"},{id:6,label:"FIRST 集计算"},
+      {id:7,label:"FOLLOW 集计算"},{id:8,label:"LL(1) 文法判定"},{id:9,label:"移进-归约分析"},
+      {id:10,label:"短语与句柄"},{id:11,label:"符号表管理"},{id:12,label:"逆波兰式与 AST"},
+      {id:13,label:"三地址码与四元式"},{id:14,label:"基本块与流图"},{id:15,label:"代码优化"}
+    ];
+
+    document.addEventListener("DOMContentLoaded", function() {
+      loadState(); renderSidebar(); renderQuestions(); initTheme(); initToolbar();
+      initKeyboard(); initMobileSidebar(); applyFontSize(currentFontSize);
+      updateMode(); updateProgress();
+    });
+
+    function loadState() {
+      try { var r = JSON.parse(localStorage.getItem(STORAGE.PROGRESS)); if (r) revealedSet = r; } catch(e){}
+      try { var d = JSON.parse(localStorage.getItem(STORAGE.READ)); if (d) readSet = d; } catch(e){}
+    }
+    function saveState() {
+      localStorage.setItem(STORAGE.PROGRESS, JSON.stringify(revealedSet));
+      localStorage.setItem(STORAGE.READ, JSON.stringify(readSet));
+    }
+    function markRead(qId) { if (!readSet[qId]) { readSet[qId] = true; saveState(); updateProgress(); updateSidebarActive(); } }
+
+    function updateProgress() {
+      var total = EXAM_QUESTIONS.length;
+      var done = Object.keys(readSet).length;
+      var pct = Math.round((done / total) * 100);
+      var fill = document.getElementById("examProgressFill");
+      var label = document.getElementById("examProgressLabel");
+      var pctEl = document.getElementById("examProgressPct");
+      if (fill) fill.style.width = pct + "%";
+      if (label) label.textContent = done + " / " + total + " 题";
+      if (pctEl) pctEl.textContent = pct + "%";
+    }
+
+    function renderSidebar() {
+      var nav = document.getElementById("sidebarNav");
+      if (!nav) return;
+      var frag = document.createDocumentFragment();
+      sidebarItems.forEach(function(item) {
+        var a = document.createElement("a");
+        a.className = "sidebar-item"; a.href = "#q" + item.id; a.dataset.questionId = item.id;
+        var check = document.createElement("span");
+        check.className = "sidebar-check"; check.id = "exam-check-" + item.id;
+        if (readSet[item.id]) { check.classList.add("done"); check.textContent = "\u2713"; }
+        var num = document.createElement("span");
+        num.className = "sidebar-num"; num.textContent = item.id;
+        var label = document.createElement("span");
+        label.className = "sidebar-label"; label.textContent = item.label;
+        a.appendChild(check); a.appendChild(num); a.appendChild(label);
+        a.addEventListener("click", function(e) {
+          e.preventDefault();
+          if (currentMode === "single") { currentIndex = item.id - 1; updateMode(); }
+          scrollToQuestion(item.id);
+          if (window.innerWidth < 768) closeMobileSidebar();
+        });
+        frag.appendChild(a);
+      });
+      nav.appendChild(frag);
+    }
+
+    function updateSidebarActive() {
+      document.querySelectorAll(".sidebar-item").forEach(function(item) {
+        var qId = parseInt(item.dataset.questionId);
+        var isActive = (currentMode === "single") ? (qId === currentIndex + 1) : false;
+        item.classList.toggle("active", isActive);
+        var check = document.getElementById("exam-check-" + qId);
+        if (check) { if (readSet[qId]) { check.classList.add("done"); check.textContent = "\u2713"; } else { check.classList.remove("done"); check.textContent = ""; } }
+      });
+    }
+
+    function renderQuestions() {
+      var container = document.getElementById("questionsContainer");
+      if (!container) return;
+      container.innerHTML = "";
+      EXAM_QUESTIONS.forEach(function(q, idx) {
+        var card = document.createElement("div");
+        card.className = "question-card"; card.id = "q" + q.id; card.dataset.index = idx;
+        var header = document.createElement("div"); header.className = "question-header";
+        var title = document.createElement("h2"); title.className = "question-title";
+        title.textContent = "第" + q.id + "题：" + q.title;
+        header.appendChild(title);
+        if (q.tags && q.tags.length) {
+          var tagsDiv = document.createElement("div"); tagsDiv.className = "question-tags";
+          q.tags.forEach(function(tag) { var s = document.createElement("span"); s.className = "question-tag"; s.textContent = tag; tagsDiv.appendChild(s); });
+          header.appendChild(tagsDiv);
+        }
+        card.appendChild(header);
+        var body = document.createElement("div"); body.className = "question-body"; body.innerHTML = q.question;
+        card.appendChild(body);
+        var btn = document.createElement("button"); btn.className = "toggle-answer-btn";
+        btn.textContent = revealedSet[q.id] ? "隐藏解析" : "显示解析";
+        btn.addEventListener("click", function() { toggleAnswer(q.id); });
+        card.appendChild(btn);
+        var answer = document.createElement("div");
+        answer.className = "answer-section" + (revealedSet[q.id] ? " open" : "");
+        answer.id = "answer-" + q.id;
+        var kb = document.createElement("div"); kb.className = "answer-block knowledge-block";
+        kb.innerHTML = '<div class="answer-block-title">考察知识点</div>' + q.knowledge;
+        answer.appendChild(kb);
+        var ab = document.createElement("div"); ab.className = "answer-block analysis-block";
+        ab.innerHTML = '<div class="answer-block-title">解析</div>' + q.analysis;
+        answer.appendChild(ab);
+        var sb = document.createElement("div"); sb.className = "answer-block steps-block";
+        sb.innerHTML = '<div class="answer-block-title">解答步骤</div>' + q.steps;
+        answer.appendChild(sb);
+        if (q.diagram && typeof createDiagramElement === "function") {
+          try { var de = createDiagramElement(q.diagram); if (de) { var dw = document.createElement("div"); dw.className = "exam-diagram"; dw.appendChild(de); answer.appendChild(dw); } } catch(e) {}
+        }
+        card.appendChild(answer);
+        var nav = document.createElement("div"); nav.className = "single-nav";
+        var counter = document.createElement("span"); counter.className = "nav-counter";
+        counter.textContent = (idx + 1) + " / " + EXAM_QUESTIONS.length;
+        var navBtns = document.createElement("div"); navBtns.className = "nav-buttons";
+        var prevBtn = document.createElement("button"); prevBtn.className = "nav-btn"; prevBtn.textContent = "上一题"; prevBtn.disabled = idx === 0;
+        prevBtn.addEventListener("click", function() { goToQuestion(idx - 1); });
+        var nextBtn = document.createElement("button"); nextBtn.className = "nav-btn"; nextBtn.textContent = "下一题"; nextBtn.disabled = idx === EXAM_QUESTIONS.length - 1;
+        nextBtn.addEventListener("click", function() { goToQuestion(idx + 1); });
+        navBtns.appendChild(prevBtn); navBtns.appendChild(nextBtn);
+        nav.appendChild(counter); nav.appendChild(navBtns);
+        card.appendChild(nav);
+        container.appendChild(card);
+      });
+    }
+
+    function toggleAnswer(qId) {
+      revealedSet[qId] = !revealedSet[qId];
+      saveState();
+      var answer = document.getElementById("answer-" + qId);
+      var card = document.getElementById("q" + qId);
+      if (!answer || !card) return;
+      var btn = card.querySelector(".toggle-answer-btn");
+      if (revealedSet[qId]) { answer.classList.add("open"); if (btn) btn.textContent = "隐藏解析"; markRead(qId); }
+      else { answer.classList.remove("open"); if (btn) btn.textContent = "显示解析"; }
+    }
+
+    function updateMode() {
+      var cards = document.querySelectorAll(".question-card");
+      var singleNavs = document.querySelectorAll(".single-nav");
+      var modeSingle = document.getElementById("modeSingle");
+      var modeAll = document.getElementById("modeAll");
+      if (currentMode === "single") {
+        if (modeSingle) modeSingle.classList.add("active");
+        if (modeAll) modeAll.classList.remove("active");
+        cards.forEach(function(card, idx) { card.classList.toggle("hidden", idx !== currentIndex); });
+        singleNavs.forEach(function(nav) { nav.style.display = ""; });
+      } else {
+        if (modeAll) modeAll.classList.add("active");
+        if (modeSingle) modeSingle.classList.remove("active");
+        cards.forEach(function(card) { card.classList.remove("hidden"); });
+        singleNavs.forEach(function(nav) { nav.style.display = "none"; });
+      }
+      updateSidebarActive();
+    }
+
+    function goToQuestion(idx) {
+      if (idx < 0 || idx >= EXAM_QUESTIONS.length) return;
+      currentIndex = idx; updateMode();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      markRead(EXAM_QUESTIONS[idx].id);
+    }
+
+    function scrollToQuestion(qId) {
+      var el = document.getElementById("q" + qId);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      markRead(qId);
+    }
+
+    document.getElementById("modeSingle").addEventListener("click", function() { currentMode = "single"; updateMode(); });
+    document.getElementById("modeAll").addEventListener("click", function() { currentMode = "all"; updateMode(); });
+
+    function initTheme() {
+      var saved = localStorage.getItem(STORAGE.THEME) || "dark";
+      applyTheme(saved);
+      var btn = document.getElementById("themeToggle");
+      var dropdown = document.getElementById("themeDropdown");
+      if (btn && dropdown) {
+        btn.addEventListener("click", function(e) {
+          e.stopPropagation();
+          dropdown.classList.toggle("open");
+        });
+        dropdown.querySelectorAll(".theme-option").forEach(function(opt) {
+          opt.addEventListener("click", function() {
+            applyTheme(opt.dataset.theme);
+            localStorage.setItem(STORAGE.THEME, opt.dataset.theme);
+            dropdown.classList.remove("open");
+          });
+        });
+        document.addEventListener("click", function() {
+          dropdown.classList.remove("open");
+        });
+      }
+    }
+    function toggleTheme() {
+      var themes = ["light","dark","warm","cool"];
+      var c = document.documentElement.getAttribute("data-theme") || "dark";
+      var idx = themes.indexOf(c);
+      var n = themes[(idx + 1) % themes.length];
+      applyTheme(n); localStorage.setItem(STORAGE.THEME, n);
+    }
+    function applyTheme(theme) {
+      document.documentElement.setAttribute("data-theme", theme);
+      document.querySelectorAll(".theme-option").forEach(function(opt) {
+        opt.classList.toggle("active", opt.dataset.theme === theme);
+      });
+    }
+
+    function initToolbar() {
+      var inc = document.getElementById("fontIncrease");
+      var dec = document.getElementById("fontDecrease");
+      var top = document.getElementById("scrollTop");
+      if (inc) inc.addEventListener("click", function() { if (currentFontSize < 24) { currentFontSize += 2; applyFontSize(currentFontSize); } });
+      if (dec) dec.addEventListener("click", function() { if (currentFontSize > 12) { currentFontSize -= 2; applyFontSize(currentFontSize); } });
+      if (top) top.addEventListener("click", function() { window.scrollTo({ top: 0, behavior: "smooth" }); });
+    }
+    function applyFontSize(size) {
+      document.documentElement.style.fontSize = size + "px";
+      localStorage.setItem(STORAGE.FONT, size);
+    }
+
+    function initKeyboard() {
+      document.addEventListener("keydown", function(e) {
+        var tag = document.activeElement ? document.activeElement.tagName : "";
+        var isInput = ["INPUT","TEXTAREA","SELECT"].indexOf(tag) >= 0;
+        if ((e.ctrlKey || e.metaKey) && e.key === "k") { e.preventDefault(); document.getElementById("searchInput").focus(); return; }
+        if (e.key === "Escape") { document.getElementById("searchInput").blur(); closeMobileSidebar(); return; }
+        if (isInput) return;
+        if (e.key === "d" || e.key === "D") { e.preventDefault(); toggleTheme(); return; }
+        if (e.key === "t" || e.key === "T") { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+        if (e.key === "Enter") { e.preventDefault(); if (currentMode === "single") toggleAnswer(EXAM_QUESTIONS[currentIndex].id); return; }
+        if (e.key === "ArrowLeft" && currentMode === "single") { e.preventDefault(); goToQuestion(currentIndex - 1); return; }
+        if (e.key === "ArrowRight" && currentMode === "single") { e.preventDefault(); goToQuestion(currentIndex + 1); return; }
+      });
+    }
+
+    function initMobileSidebar() {
+      var toggle = document.getElementById("tocToggle");
+      var overlay = document.getElementById("sidebarOverlay");
+      if (toggle) toggle.addEventListener("click", toggleSidebar);
+      if (overlay) overlay.addEventListener("click", closeSidebar);
+      // 默认打开侧边栏
+      document.body.classList.add("sidebar-visible");
+    }
+    function toggleSidebar() {
+      var s = document.getElementById("sidebar"); var o = document.getElementById("sidebarOverlay");
+      var isOpen = s && s.classList.contains("open");
+      if (s) s.classList.toggle("open"); if (o) o.classList.toggle("open");
+      document.body.classList.toggle("sidebar-visible", !isOpen);
+    }
+    function closeSidebar() {
+      var s = document.getElementById("sidebar"); var o = document.getElementById("sidebarOverlay");
+      if (s) s.classList.remove("open"); if (o) o.classList.remove("open");
+      document.body.classList.remove("sidebar-visible");
+    }
+
+    // Search
+    var searchInput = document.getElementById("searchInput");
+    if (searchInput) {
+      var debounceTimer;
+      searchInput.addEventListener("input", function() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(function() { performSearch(searchInput.value); }, 200);
+      });
+      searchInput.addEventListener("keydown", function(e) {
+        if (e.key === "Escape") { searchInput.value = ""; clearHighlights(); document.getElementById("searchCount").textContent = ""; searchInput.blur(); }
+      });
+    }
+
+    function performSearch(query) {
+      var q = query.trim().toLowerCase();
+      clearHighlights();
+      var countEl = document.getElementById("searchCount");
+      if (!q) { if (countEl) countEl.textContent = ""; return; }
+      var container = document.getElementById("questionsContainer");
+      if (!container) return;
+      var matchCount = 0;
+      var walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null, false);
+      var textNodes = [];
+      while (walker.nextNode()) textNodes.push(walker.currentNode);
+      textNodes.forEach(function(node) {
+        var text = node.textContent;
+        if (text.toLowerCase().indexOf(q) >= 0) {
+          var escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          var parts = text.split(new RegExp("(" + escaped + ")", "gi"));
+          var frag = document.createDocumentFragment();
+          parts.forEach(function(part) {
+            if (part.toLowerCase() === q) {
+              var mark = document.createElement("mark");
+              mark.className = "search-highlight"; mark.textContent = part;
+              frag.appendChild(mark); matchCount++;
+            } else { frag.appendChild(document.createTextNode(part)); }
+          });
+          node.parentNode.replaceChild(frag, node);
+        }
+      });
+      if (countEl) countEl.textContent = matchCount > 0 ? matchCount + " 处匹配" : "无匹配";
+      var first = document.querySelector(".search-highlight");
+      if (first) first.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function clearHighlights() {
+      document.querySelectorAll(".search-highlight").forEach(function(mark) {
+        var text = document.createTextNode(mark.textContent);
+        mark.parentNode.replaceChild(text, mark);
+      });
+      document.body.normalize();
+    }
+
+  })();
+  </script>
+</body>
+</html>

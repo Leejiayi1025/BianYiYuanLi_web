@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>编译原理 · 复习系统</title>
+  <!-- 主样式表：styles.css 同目录引用 -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- =============================================
+       Grain overlay - 胶片颗粒质感覆盖层
+       ============================================= -->
+  <div class="grain-overlay" aria-hidden="true"></div>
+
+  <!-- =============================================
+       Sidebar - 侧边导航栏
+       ============================================= -->
+  <aside class="sidebar open" id="sidebar">
+
+    <!-- 侧边栏头部：标题 + 副标题 -->
+    <div class="sidebar-header">
+      <h1 class="sidebar-title">编译原理</h1>
+      <p class="sidebar-subtitle">复 · 习 · 系 · 统</p>
+    </div>
+
+    <!-- 搜索栏 -->
+    <div class="sidebar-search">
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="搜索… (Ctrl+K)"
+        autocomplete="off"
+        aria-label="搜索章节内容"
+      >
+      <span class="search-count" id="searchCount"></span>
+    </div>
+
+    <!-- 章节导航：由 JS 动态渲染填充 -->
+    <nav class="sidebar-nav" id="sidebarNav" aria-label="章节导航">
+      <!-- 导航入口 -->
+      <a class="sidebar-item sidebar-item-exam" href="index.html">
+        <span class="sidebar-check"></span>
+        <span class="sidebar-num"></span>
+        <span class="sidebar-label">返回首页</span>
+      </a>
+      <a class="sidebar-item sidebar-item-exam" href="exam.html">
+        <span class="sidebar-check"></span>
+        <span class="sidebar-num"></span>
+        <span class="sidebar-label">题库练习</span>
+      </a>
+      <div class="sidebar-divider"></div>
+      <!-- JS 动态渲染章节 -->
+    </nav>
+
+    <!-- 学习进度条 + 导出 -->
+    <div class="sidebar-progress">
+      <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="学习进度">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-text">
+        <span id="progressLabel">0 / 17 章</span>
+        <span id="progressPct">0%</span>
+      </div>
+      <button class="sidebar-export-btn" id="exportBtn">导出资料</button>
+    </div>
+  </aside>
+
+  <!-- 移动端侧边栏遮罩层 -->
+  <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+  <!-- =============================================
+       Main - 主内容区域
+       ============================================= -->
+  <main class="main">
+
+    <!-- Toolbar - 顶部工具栏 -->
+    <header class="toolbar" id="toolbar">
+
+      <!-- 目录切换按钮（移动端） -->
+      <button
+        class="toolbar-btn toc-toggle"
+        id="tocToggle"
+        title="目录"
+        aria-label="切换侧边栏目录"
+      >
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+          <line x1="3" y1="5" x2="17" y2="5"/>
+          <line x1="3" y1="10" x2="17" y2="10"/>
+          <line x1="3" y1="15" x2="17" y2="15"/>
+        </svg>
+      </button>
+
+      <!-- 面包屑导航 -->
+      <nav class="breadcrumb" id="breadcrumb" aria-label="面包屑导航">
+        <a class="breadcrumb-home" href="index.html" style="color:inherit;text-decoration:none;">首页</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current" id="breadcrumbCurrent">编译原理</span>
+      </nav>
+
+      <!-- 工具栏弹性占位 -->
+      <div class="toolbar-spacer"></div>
+
+      <!-- 工具栏操作按钮组 -->
+      <div class="toolbar-actions">
+        <button class="toolbar-btn" id="fontDecrease" title="减小字号" aria-label="减小字号">A-</button>
+        <button class="toolbar-btn" id="fontIncrease" title="增大字号" aria-label="增大字号">A+</button>
+        <button class="toolbar-btn" id="printBtn" title="打印" aria-label="打印当前页面">打印</button>
+        <button class="toolbar-btn" id="resetProgress" title="重置进度" aria-label="重置学习进度">重置</button>
+        <button class="toolbar-btn" id="scrollTop" title="回到顶部 (T)" aria-label="回到页面顶部">顶部</button>
+        <div class="theme-wrapper" style="position:relative;">
+          <button class="theme-btn" id="themeToggle" title="切换主题 (D)" aria-label="切换主题">切换主题</button>
+          <div class="theme-dropdown" id="themeDropdown">
+            <button class="theme-option" data-theme="light"><span class="theme-dot" data-theme="light"></span>Light</button>
+            <button class="theme-option active" data-theme="dark"><span class="theme-dot" data-theme="dark"></span>Dark</button>
+            <button class="theme-option" data-theme="warm"><span class="theme-dot" data-theme="warm"></span>Warm</button>
+            <button class="theme-option" data-theme="cool"><span class="theme-dot" data-theme="cool"></span>Cool</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content - 内容区域 -->
+    <article class="content" id="content">
+
+      <!-- Hero - 首屏视觉区域：大面积留白 + 极细标题 -->
+      <div class="hero">
+        <h1 class="hero-title">编译原理</h1>
+        <p class="hero-desc">考前复习 · 高密度整理 · 共十七章</p>
+        <div class="hero-line"></div>
+      </div>
+
+      <!-- 章节容器：由 JS 动态渲染填充章节内容 -->
+      <div id="chaptersContainer" aria-label="章节内容">
+        <!-- JS 动态渲染 -->
+      </div>
+    </article>
+  </main>
+
+  <!-- =============================================
+       Keyboard shortcuts hint - 快捷键提示
+       ============================================= -->
+  <div class="shortcuts-hint" id="shortcutsHint" aria-label="快捷键提示">
+    <span>Ctrl+K 搜索</span>
+    <span>D 主题</span>
+    <span>← → 翻章</span>
+    <span>T 顶部</span>
+  </div>
+
+  <!-- 内容数据（分两部分避免超时） -->
+  <script src="content-ch1-9.js"></script>
+  <script src="content-ch10-17.js"></script>
+  <!-- 主逻辑脚本 -->
+  <script src="app.js"></script>
+</body>
+</html>
