@@ -595,7 +595,48 @@ function studyHtmlToElements(html, docx) {
   div.innerHTML = html;
   const els = [];
 
-  div.childNodes.forEach(node => {
+  // 解析内联元素
+  function parseInline(el, size) {
+    size = size || 21;
+    const runs = [];
+    el.childNodes.forEach(cn => {
+      if (cn.nodeType === 3) {
+        const t = cn.textContent;
+        if (t.trim()) runs.push(new TR({ text: t, font: 'Microsoft YaHei', size: size }));
+      } else if (cn.nodeType === 1) {
+        const t = cn.textContent;
+        if (!t.trim()) return;
+        if (cn.tagName === 'STRONG' || cn.tagName === 'B')
+          runs.push(new TR({ text: t, bold: true, font: 'Microsoft YaHei', size: size }));
+        else if (cn.tagName === 'CODE')
+          runs.push(new TR({ text: t, font: 'Consolas', size: size - 1, shading: { fill: 'F0F0F0' } }));
+        else if (cn.tagName === 'SUB')
+          runs.push(new TR({ text: t, subScript: true, font: 'Microsoft YaHei', size: size - 2 }));
+        else if (cn.tagName === 'SUP')
+          runs.push(new TR({ text: t, superScript: true, font: 'Microsoft YaHei', size: size - 2 }));
+        else
+          runs.push(new TR({ text: t, font: 'Microsoft YaHei', size: size }));
+      }
+    });
+    return runs;
+  }
+
+  // 代码块：每行一个段落
+  function buildCodeBlock(text) {
+    const lines = text.split('\n');
+    lines.forEach(line => {
+      els.push(new P({
+        spacing: { before: 0, after: 0 },
+        shading: { fill: 'F5F5F0' },
+        indent: { left: 240, right: 240 },
+        border: { left: { style: BS.SINGLE, size: 4, color: 'AAAAAA' } },
+        children: [new TR({ text: line || ' ', font: 'Consolas', size: 19, color: '333333' })]
+      }));
+    });
+  }
+
+  // 处理节点
+  function processNode(node) {
     if (node.nodeType === 3) {
       const t = node.textContent.trim();
       if (t) els.push(new P({ spacing: { after: 80 }, children: [new TR({ text: t, font: 'Microsoft YaHei', size: 21 })] }));
@@ -604,151 +645,106 @@ function studyHtmlToElements(html, docx) {
     if (node.nodeType !== 1) return;
     const tag = node.tagName;
 
+    // 段落
     if (tag === 'P') {
-      const runs = [];
-      node.childNodes.forEach(cn => {
-        if (cn.nodeType === 3) {
-          const t = cn.textContent;
-          if (t.trim()) runs.push(new TR({ text: t, font: 'Microsoft YaHei', size: 21 }));
-        } else if (cn.nodeType === 1) {
-          const ct = cn.textContent;
-          if (!ct.trim()) return;
-          if (cn.tagName === 'STRONG' || cn.tagName === 'B')
-            runs.push(new TR({ text: ct, bold: true, font: 'Microsoft YaHei', size: 21 }));
-          else if (cn.tagName === 'CODE')
-            runs.push(new TR({ text: ct, font: 'Consolas', size: 20, shading: { fill: 'F0F0F0' } }));
-          else if (cn.tagName === 'SUB')
-            runs.push(new TR({ text: ct, subScript: true, font: 'Microsoft YaHei', size: 19 }));
-          else
-            runs.push(new TR({ text: ct, font: 'Microsoft YaHei', size: 21 }));
-        }
-      });
+      const runs = parseInline(node, 21);
       if (runs.length) els.push(new P({ spacing: { after: 100 }, children: runs }));
     }
-    else if (tag === 'PRE' || (tag === 'DIV' && node.classList && node.classList.contains('code-block'))) {
-      const lines = node.textContent.trim().split('\n');
-      const children = [];
-      lines.forEach((line, i) => {
-        children.push(new TR({ text: line, font: 'Consolas', size: 19, color: '333333' }));
-        if (i < lines.length - 1) children.push(new TR({ text: '', break: 1 }));
-      });
-      els.push(new P({
-        spacing: { before: 60, after: 60 },
-        shading: { fill: 'F5F5F0' },
-        indent: { left: 200, right: 200 },
-        border: { left: { style: BS.SINGLE, size: 3, color: 'AAAAAA' } },
-        children: children
-      }));
+    // 代码块
+    else if (tag === 'PRE') {
+      els.push(new P({ spacing: { before: 80, after: 0 }, children: [] }));
+      buildCodeBlock(node.textContent.trim());
+      els.push(new P({ spacing: { before: 0, after: 80 }, children: [] }));
     }
+    // div代码块
+    else if (tag === 'DIV' && node.classList && node.classList.contains('code-block')) {
+      els.push(new P({ spacing: { before: 80, after: 0 }, children: [] }));
+      buildCodeBlock(node.textContent.trim());
+      els.push(new P({ spacing: { before: 0, after: 80 }, children: [] }));
+    }
+    // 无序列表
     else if (tag === 'UL') {
       node.querySelectorAll(':scope > li').forEach(li => {
-        const runs = [];
-        li.childNodes.forEach(cn => {
-          if (cn.nodeType === 3) {
-            const t = cn.textContent;
-            if (t.trim()) runs.push(new TR({ text: t, font: 'Microsoft YaHei', size: 21 }));
-          } else if (cn.nodeType === 1) {
-            const ct = cn.textContent;
-            if (ct.trim()) {
-              if (cn.tagName === 'STRONG' || cn.tagName === 'B')
-                runs.push(new TR({ text: ct, bold: true, font: 'Microsoft YaHei', size: 21 }));
-              else if (cn.tagName === 'CODE')
-                runs.push(new TR({ text: ct, font: 'Consolas', size: 20 }));
-              else
-                runs.push(new TR({ text: ct, font: 'Microsoft YaHei', size: 21 }));
-            }
-          }
-        });
+        const runs = parseInline(li, 21);
         els.push(new P({
           spacing: { after: 50 },
-          indent: { left: 360, hanging: 200 },
+          indent: { left: 400, hanging: 200 },
           children: [new TR({ text: '•  ', font: 'Microsoft YaHei', size: 21 })].concat(runs)
         }));
       });
     }
+    // 有序列表
     else if (tag === 'OL') {
       node.querySelectorAll(':scope > li').forEach((li, i) => {
-        const runs = [];
-        li.childNodes.forEach(cn => {
-          if (cn.nodeType === 3) {
-            const t = cn.textContent;
-            if (t.trim()) runs.push(new TR({ text: t, font: 'Microsoft YaHei', size: 21 }));
-          } else if (cn.nodeType === 1) {
-            const ct = cn.textContent;
-            if (ct.trim()) runs.push(new TR({ text: ct, font: 'Microsoft YaHei', size: 21 }));
-          }
-        });
+        const runs = parseInline(li, 21);
         els.push(new P({
           spacing: { after: 50 },
-          indent: { left: 360, hanging: 200 },
-          children: [new TR({ text: (i + 1) + '.  ', font: 'Microsoft YaHei', size: 21, bold: true })].concat(runs)
+          indent: { left: 400, hanging: 240 },
+          children: [new TR({ text: (i + 1) + '. ', font: 'Microsoft YaHei', size: 21, bold: true })].concat(runs)
         }));
       });
     }
+    // 表格
     else if (tag === 'TABLE') {
       const rows = [];
-      node.querySelectorAll('tr').forEach((tr, ri) => {
+      node.querySelectorAll('tr').forEach(tr => {
         const cells = [];
         tr.querySelectorAll('th, td').forEach(cell => {
           const isH = cell.tagName === 'TH';
-          const runs = [];
-          cell.childNodes.forEach(cn => {
-            const t = cn.textContent.trim();
-            if (t) {
-              if (cn.tagName === 'CODE')
-                runs.push(new TR({ text: t, font: 'Consolas', size: 19, bold: isH }));
-              else
-                runs.push(new TR({ text: t, font: 'Microsoft YaHei', size: 20, bold: isH }));
-            }
-          });
+          const runs = parseInline(cell, 20);
           if (runs.length === 0) runs.push(new TR({ text: ' ', font: 'Microsoft YaHei', size: 20 }));
           cells.push(new docx.TableCell({
             children: [new P({ spacing: { before: 30, after: 30 }, children: runs })],
-            shading: isH ? { fill: 'E8E8E8' } : undefined,
+            shading: isH ? { fill: 'EAEAEA' } : undefined,
             borders: {
-              top: { style: BS.SINGLE, size: 1, color: 'CCCCCC' },
-              bottom: { style: BS.SINGLE, size: 1, color: 'CCCCCC' },
-              left: { style: BS.SINGLE, size: 1, color: 'CCCCCC' },
-              right: { style: BS.SINGLE, size: 1, color: 'CCCCCC' }
+              top: { style: BS.SINGLE, size: 1, color: 'BBBBBB' },
+              bottom: { style: BS.SINGLE, size: 1, color: 'BBBBBB' },
+              left: { style: BS.SINGLE, size: 1, color: 'BBBBBB' },
+              right: { style: BS.SINGLE, size: 1, color: 'BBBBBB' }
             }
           }));
         });
         rows.push(new docx.TableRow({ children: cells }));
       });
-      if (rows.length) els.push(new docx.Table({ rows, width: { size: 100, type: 'pct' } }));
+      if (rows.length) {
+        els.push(new P({ spacing: { before: 80, after: 0 }, children: [] }));
+        els.push(new docx.Table({ rows, width: { size: 100, type: 'pct' } }));
+        els.push(new P({ spacing: { before: 0, after: 80 }, children: [] }));
+      }
     }
+    // h4标题
     else if (tag === 'H4') {
       els.push(new P({
         spacing: { before: 160, after: 80 },
         children: [new TR({ text: node.textContent, bold: true, font: 'Microsoft YaHei', size: 22, color: '333333' })]
       }));
     }
+    // div（callout等，可能包含块级元素）
     else if (tag === 'DIV') {
-      const runs = [];
-      node.childNodes.forEach(cn => {
-        const t = cn.textContent.trim();
-        if (t) runs.push(new TR({ text: t, font: 'Microsoft YaHei', size: 21 }));
-      });
-      if (runs.length) {
-        els.push(new P({
-          spacing: { before: 60, after: 60 },
-          shading: { fill: 'F5F5F0' },
-          indent: { left: 200 },
-          border: { left: { style: BS.SINGLE, size: 3, color: '999999' } },
-          children: runs
-        }));
+      const hasBlock = node.querySelector('p,ul,ol,pre,table,h4,div.code-block');
+      if (hasBlock) {
+        node.childNodes.forEach(processNode);
+      } else {
+        const runs = parseInline(node, 21);
+        if (runs.length) {
+          els.push(new P({
+            spacing: { before: 60, after: 60 },
+            shading: { fill: 'F5F5F0' },
+            indent: { left: 200 },
+            border: { left: { style: BS.SINGLE, size: 4, color: '999999' } },
+            children: runs
+          }));
+        }
       }
     }
+    // 其他
     else {
-      const runs = [];
-      node.childNodes.forEach(cn => {
-        const t = cn.textContent.trim();
-        if (t) runs.push(new TR({ text: t, font: 'Microsoft YaHei', size: 21 }));
-      });
+      const runs = parseInline(node, 21);
       if (runs.length) els.push(new P({ spacing: { after: 80 }, children: runs }));
     }
-  });
+  }
 
+  div.childNodes.forEach(processNode);
   return els;
 }
 
